@@ -1,5 +1,6 @@
 from socket import *
 import os
+import json
 
 dir = os.getcwd()
 
@@ -18,7 +19,8 @@ while True:
 
         if command == 'ls':
             data = clientSocket.recv(1024).decode()
-            print('From server:', data)
+            data = json.loads(data)
+            print('From server:', data['data'])
         elif command == 'upload':
             filename = input("Enter file name to be stored: ")
             clientSocket.send(filename.encode())
@@ -42,6 +44,7 @@ while True:
         
         elif command == 'download':
             res = clientSocket.recv(1024).decode()
+            res = json.loads(res)
             print(res)
 
             ## enter filename that want to download
@@ -49,19 +52,19 @@ while True:
             clientSocket.send(file_name.encode())
 
             ##check status
-            res_code = clientSocket.recv(1024).decode()
-            if(res_code == '404'):
-                msg = clientSocket.recv(1024).decode()
-                print(msg)
+            res = clientSocket.recv(1024).decode()
+            res = json.loads(res)
+
+            if(res['code'] == 404):
+                print(res['msg'])
             else:
                 with open(os.path.join(dir, file_name), 'wb') as file:
                     data = clientSocket.recv(1024)
                     file.write(data)
                 
-                res = f'File "{file_name}" received and saved successfully.'
+                res = clientSocket.recv(1024).decode()
+                res = json.loads(res)
                 print(res)
-                clientSocket.send('done'.encode())
-
         elif command == 'end':
             clientSocket.close()
             break

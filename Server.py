@@ -1,5 +1,6 @@
 from socket import *
 import os
+import json
 
 def getDirectory():
     cur = os.getcwd()
@@ -34,43 +35,50 @@ while True:
 
             if command == 'ls':
                 file_list = os.listdir(getDirectory())
-                connection_socket.send(str(file_list).encode())
+                res = json.dumps({"code":200, "msg":'ok', "data":str(file_list)})
+                print(res)
+                connection_socket.send(res.encode())
             elif command == 'upload':
                 file_name = connection_socket.recv(1024).decode()
-                print(file_name)
+                print('File name to be save :', file_name)
                 file_path = os.path.join(getDirectory(), file_name)
-                print(file_path)
 
                 with open(file_path, 'wb') as file:
                     data = connection_socket.recv(1024)
                     file.write(data)
                 
-                res = f'File "{file_name}" received and saved successfully.'
+                res = json.dumps({"code":200, "msg":'ok', "data":f'File "{file_name}" received and saved successfully.'})
                 print(res)
                 connection_socket.send(res.encode())
             elif command == 'download':
                 file_list = os.listdir(getDirectory())
-                connection_socket.send(str(file_list).encode())
+                res = json.dumps({"code":200, "msg":'ok', "data":str(file_list)})
+                print(res)
+                connection_socket.send(res.encode())
+                
+                filed = connection_socket.recv(1024).decode()
+                res = json.dumps({"code":200, "msg":'ok'})
+                connection_socket.send(res.encode())
+                
                 try:
-                    filed = connection_socket.recv(1024).decode()
                     with open(os.path.join(getDirectory(), filed), "rb") as file:
                         data = file.read(1024)
-                        connection_socket.send('200'.encode())
                         while data:
                             connection_socket.send(data)
                             data = file.read(1024)
                         file.close()
-                    res = connection_socket.recv(1024).decode()
-                    print(res)
+
 
                 except FileNotFoundError:
                     str = 'File not found!'
-                    connection_socket.send('404'.encode())
-                    connection_socket.send(str.encode())
+                    res = json.dumps({"code":200, "msg":str})
+                    connection_socket.send(res.encode())
                 except Exception as e:
                     str = 'Error while uploading file!'
-                    connection_socket.send('404'.encode())
-                    connection_socket.send(str.encode())
+                    res = json.dumps({"code":200, "msg":str})
+                    connection_socket.send(res.encode())
+                
+                connection_socket.send(res.encode())
             elif command == 'end':
                 break
 
