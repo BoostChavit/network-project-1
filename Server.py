@@ -71,11 +71,11 @@ while True:
 
                 except FileNotFoundError:
                     str = 'File not found!'
-                    res = json.dumps({"code":200, "msg":str})
+                    res = json.dumps({"code":404, "msg":str})
                     connection_socket.send(res.encode())
                 except Exception as e:
                     str = 'Error while uploading file!'
-                    res = json.dumps({"code":200, "msg":str})
+                    res = json.dumps({"code":404, "msg":str})
                     connection_socket.send(res.encode())
                 
                 connection_socket.send(res.encode())
